@@ -19,7 +19,11 @@ const BASE_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
 // ── Token Management ──────────────────────────────────────────────────────────
 
 async function getValidToken() {
-  const store = getStore("yahoo-tokens");
+  const store = getStore({
+    name: "yahoo-tokens",
+    siteID: "967be1b0-3761-4b81-93f4-631ba1be9ca3",
+    token: process.env.NETLIFY_AUTH_TOKEN,
+  });
   const tokenData = await store.getJSON("tokens");
 
   if (!tokenData) {
