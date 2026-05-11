@@ -19,12 +19,8 @@ const BASE_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
 // ── Token Management ──────────────────────────────────────────────────────────
 
 async function getValidToken() {
-  const store = getStore({
-    name: "yahoo-tokens",
-    siteID: "967be1b0-3761-4b81-93f4-631ba1be9ca3",
-    token: process.env.NETLIFY_AUTH_TOKEN,
-  });
-const tokenData = await store.get("tokens", { type: "json" });
+  const store = getStore("yahoo-tokens");
+  const tokenData = await store.getJSON("tokens");
 
   if (!tokenData) {
     throw new Error("NOT_AUTHORIZED: No tokens found. Visit /api/yahoo-auth to authorize.");
@@ -68,12 +64,9 @@ async function refreshToken(refreshToken, store) {
     token_type: tokens.token_type,
   };
 
-await store.set("tokens", JSON.stringify({
-  access_token: tokens.access_token,
-  refresh_token: tokens.refresh_token,
-  expires_at: Date.now() + tokens.expires_in * 1000,
-  token_type: tokens.token_type,
-}));
+  await store.setJSON("tokens", newTokenData);
+  return newTokenData.access_token;
+}
 
 // ── Yahoo API Fetch Helper ────────────────────────────────────────────────────
 
