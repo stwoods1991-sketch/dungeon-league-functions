@@ -7,3 +7,23 @@
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, OPTIONS"
     Access-Control-Allow-Headers = "Content-Type"
+
+[[redirects]]
+  from = "/api/yahoo-auth"
+  to = "/.netlify/functions/yahoo-auth"
+  status = 200
+
+[[redirects]]
+  from = "/api/yahoo-callback"
+  to = "/.netlify/functions/yahoo-callback"
+  status = 200
+
+[[redirects]]
+  from = "/api/yahoo-stats"
+  to = "/.netlify/functions/yahoo-stats"
+  status = 200
+
+[[redirects]]
+  from = "/api/fetch-sheet"
+  to = "/.netlify/functions/fetch-sheet"
+  status = 200
