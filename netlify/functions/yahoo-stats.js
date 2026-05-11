@@ -1,40 +1,33 @@
-// netlify/functions/yahoo-stats.js
-// Main stats endpoint - fetches player stats from Yahoo Fantasy API
-// Handles token refresh automatically when access token expires
-//
-// Supported query params:
-//   ?type=players           → top players with stats (default)
-//   ?type=standings         → league standings
-//   ?type=matchups          → current week matchups
-//   ?type=roster&team=3     → specific team roster (team number required)
-//
-// Example: /api/yahoo-stats?type=players
-
 const { getStore } = require("@netlify/blobs");
 
 const LEAGUE_ID = process.env.YAHOO_LEAGUE_ID || "10371";
-const GAME_KEY = "nhl"; // Yahoo game key for NHL
+const GAME_KEY = "nhl";
 const BASE_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
 
-// ── Token Management ──────────────────────────────────────────────────────────
+function getTokenStore() {
+  return getStore({
+    name: "yahoo-tokens",
+    siteID: "967be1b0-3761-4b81-93f4-631ba1be9ca3",
+    token: process.env.BLOBS_TOKEN,
+  });
+}
 
 async function getValidToken() {
-  const store = getStore("yahoo-tokens");
-  const tokenData = await store.getJSON("tokens");
+  const store = getTokenStore();
+  const tokenData = await store.get("tokens", { type: "json" });
 
   if (!tokenData) {
     throw new Error("NOT_AUTHORIZED: No tokens found. Visit /api/yahoo-auth to authorize.");
   }
 
-  // Refresh if expired (with 60s buffer)
   if (Date.now() >= tokenData.expires_at - 60000) {
-    return await refreshToken(tokenData.refresh_token, store);
+    return await refreshAccessToken(tokenData.refresh_token, store);
   }
 
   return tokenData.access_token;
 }
 
-async function refreshToken(refreshToken, store) {
+async function refreshAccessToken(refreshToken, store) {
   const clientId = process.env.YAHOO_CLIENT_ID;
   const clientSecret = process.env.YAHOO_CLIENT_SECRET;
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
@@ -64,11 +57,9 @@ async function refreshToken(refreshToken, store) {
     token_type: tokens.token_type,
   };
 
-  await store.setJSON("tokens", newTokenData);
+  await store.set("tokens", JSON.stringify(newTokenData));
   return newTokenData.access_token;
 }
-
-// ── Yahoo API Fetch Helper ────────────────────────────────────────────────────
 
 async function yahooFetch(path, accessToken) {
   const url = `${BASE_URL}${path}?format=json`;
@@ -87,12 +78,9 @@ async function yahooFetch(path, accessToken) {
   return res.json();
 }
 
-// ── Data Parsers ──────────────────────────────────────────────────────────────
-
 function parseStatCategories(data) {
   try {
-    const categories =
-      data.fantasy_content.game[1].stat_categories.stats.stat;
+    const categories = data.fantasy_content.game[1].stat_categories.stats.stat;
     return categories.reduce((acc, s) => {
       acc[s.stat_id] = s.display_name;
       return acc;
@@ -112,16 +100,10 @@ function parsePlayers(data, statMap) {
       const info = p[0];
       const stats = p[1]?.player_stats?.stats?.stat || [];
 
-      const name =
-        info.find((x) => x.name)?.name?.full ||
-        info.find((x) => x.name)?.name ||
-        "Unknown";
-      const team =
-        info.find((x) => x.editorial_team_abbr)?.editorial_team_abbr || "—";
-      const position =
-        info.find((x) => x.display_position)?.display_position || "—";
-      const ownership =
-        info.find((x) => x.ownership)?.ownership?.ownership_type || "—";
+      const name = info.find((x) => x.name)?.name?.full || info.find((x) => x.name)?.name || "Unknown";
+      const team = info.find((x) => x.editorial_team_abbr)?.editorial_team_abbr || "—";
+      const position = info.find((x) => x.display_position)?.display_position || "—";
+      const ownership = info.find((x) => x.ownership)?.ownership?.ownership_type || "—";
 
       const statObj = {};
       stats.forEach((s) => {
@@ -168,15 +150,13 @@ function parseStandings(data) {
 
 function parseMatchups(data) {
   try {
-    const matchups =
-      data.fantasy_content.league[1].scoreboard.matchups;
+    const matchups = data.fantasy_content.league[1].scoreboard.matchups;
     const result = [];
 
     for (let i = 0; i < matchups.count; i++) {
       const m = matchups[i].matchup;
       const week = m.week;
       const teams = m["0"].teams;
-
       const teamA = teams["0"].team;
       const teamB = teams["1"].team;
 
@@ -203,8 +183,7 @@ function parseMatchups(data) {
 
 function parseRoster(data) {
   try {
-    const roster =
-      data.fantasy_content.team[1].roster["0"].players;
+    const roster = data.fantasy_content.team[1].roster["0"].players;
     const players = [];
 
     for (let i = 0; i < roster.count; i++) {
@@ -214,8 +193,7 @@ function parseRoster(data) {
         name: info.find((x) => x.name)?.name?.full || "Unknown",
         position: info.find((x) => x.display_position)?.display_position || "—",
         team: info.find((x) => x.editorial_team_abbr)?.editorial_team_abbr || "—",
-        selected_position:
-          p[1]?.selected_position?.position || "—",
+        selected_position: p[1]?.selected_position?.position || "—",
       });
     }
 
@@ -224,8 +202,6 @@ function parseRoster(data) {
     throw new Error(`Failed to parse roster: ${err.message}`);
   }
 }
-
-// ── Main Handler ──────────────────────────────────────────────────────────────
 
 exports.handler = async (event) => {
   const headers = {
@@ -243,19 +219,13 @@ exports.handler = async (event) => {
 
     switch (type) {
       case "standings": {
-        const data = await yahooFetch(
-          `/league/${leagueKey}/standings`,
-          accessToken
-        );
+        const data = await yahooFetch(`/league/${leagueKey}/standings`, accessToken);
         responseData = { type: "standings", data: parseStandings(data) };
         break;
       }
 
       case "matchups": {
-        const data = await yahooFetch(
-          `/league/${leagueKey}/scoreboard`,
-          accessToken
-        );
+        const data = await yahooFetch(`/league/${leagueKey}/scoreboard`, accessToken);
         responseData = { type: "matchups", data: parseMatchups(data) };
         break;
       }
@@ -269,32 +239,17 @@ exports.handler = async (event) => {
           };
         }
         const teamKey = `${leagueKey}.t.${teamNum}`;
-        const data = await yahooFetch(
-          `/team/${teamKey}/roster`,
-          accessToken
-        );
+        const data = await yahooFetch(`/team/${teamKey}/roster`, accessToken);
         responseData = { type: "roster", team: teamNum, data: parseRoster(data) };
         break;
       }
 
       case "players":
       default: {
-        // Fetch stat category labels first
-        const gameData = await yahooFetch(
-          `/game/${GAME_KEY}/stat_categories`,
-          accessToken
-        );
+        const gameData = await yahooFetch(`/game/${GAME_KEY}/stat_categories`, accessToken);
         const statMap = parseStatCategories(gameData);
-
-        // Fetch top 25 players with season stats
-        const data = await yahooFetch(
-          `/league/${leagueKey}/players;count=25;sort=AR/stats`,
-          accessToken
-        );
-        responseData = {
-          type: "players",
-          data: parsePlayers(data, statMap),
-        };
+        const data = await yahooFetch(`/league/${leagueKey}/players;count=25;sort=AR/stats`, accessToken);
+        responseData = { type: "players", data: parsePlayers(data, statMap) };
         break;
       }
     }
