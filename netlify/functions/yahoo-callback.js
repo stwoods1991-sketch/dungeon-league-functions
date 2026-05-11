@@ -1,7 +1,3 @@
-// netlify/functions/yahoo-callback.js
-// Step 2: Yahoo redirects here after authorization
-// Exchanges the auth code for access + refresh tokens, stores them in Netlify Blobs
-
 const { getStore } = require("@netlify/blobs");
 
 exports.handler = async (event) => {
@@ -25,8 +21,6 @@ exports.handler = async (event) => {
 
   const clientId = process.env.YAHOO_CLIENT_ID;
   const clientSecret = process.env.YAHOO_CLIENT_SECRET;
-
-  // Exchange auth code for tokens
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
   try {
@@ -50,8 +44,12 @@ exports.handler = async (event) => {
 
     const tokens = await tokenRes.json();
 
-    // Store tokens in Netlify Blobs (persists between function calls)
-    const store = getStore("yahoo-tokens");
+    const store = getStore({
+      name: "yahoo-tokens",
+      siteID: "967be1b0-3761-4b81-93f4-631ba1be9ca3",
+      token: process.env.NETLIFY_AUTH_TOKEN,
+    });
+
     await store.setJSON("tokens", {
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token,
