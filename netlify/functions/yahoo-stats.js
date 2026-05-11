@@ -24,7 +24,7 @@ async function getValidToken() {
     siteID: "967be1b0-3761-4b81-93f4-631ba1be9ca3",
     token: process.env.NETLIFY_AUTH_TOKEN,
   });
-  const tokenData = await store.getJSON("tokens");
+const tokenData = await store.get("tokens", { type: "json" });
 
   if (!tokenData) {
     throw new Error("NOT_AUTHORIZED: No tokens found. Visit /api/yahoo-auth to authorize.");
@@ -68,9 +68,12 @@ async function refreshToken(refreshToken, store) {
     token_type: tokens.token_type,
   };
 
-  await store.setJSON("tokens", newTokenData);
-  return newTokenData.access_token;
-}
+await store.set("tokens", JSON.stringify({
+  access_token: tokens.access_token,
+  refresh_token: tokens.refresh_token,
+  expires_at: Date.now() + tokens.expires_in * 1000,
+  token_type: tokens.token_type,
+}));
 
 // ── Yahoo API Fetch Helper ────────────────────────────────────────────────────
 
