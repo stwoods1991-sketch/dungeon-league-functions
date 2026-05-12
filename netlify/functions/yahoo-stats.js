@@ -130,8 +130,15 @@ function parseStandings(data) {
       const info = t[0];
       const standings = t[2]?.team_standings;
 
+      // Extract the Yahoo team_id so the frontend can fetch rosters by the correct ID
+      const teamKey = info.find((x) => x.team_key)?.team_key || "";
+      const teamId = info.find((x) => x.team_id)?.team_id
+        || teamKey.split(".t.")[1]
+        || null;
+
       result.push({
         rank: standings?.rank,
+        team_id: teamId,
         name: info.find((x) => x.name)?.name || "Unknown",
         manager: info.find((x) => x.managers)?.managers[0]?.manager?.nickname || "—",
         wins: standings?.outcome_totals?.wins,
