@@ -21,6 +21,26 @@ function loadSupa() {
     if (!c) return;
     var id = c.id;
 
+    // Pull standings from Supabase for accurate adjusted rank/record/points
+    af('standings').then(function(standings) {
+      var me = standings.find(function(s) { return s.display_name === CN; });
+      if (me) {
+        var rk = standings.indexOf(me) + 1;
+        var w = me.wins || 0;
+        var l = me.losses || 0;
+        var tot = w + l;
+        var wp = tot > 0 ? (w / tot * 100).toFixed(1) + '%' : '-';
+        var pts = parseFloat(me.points_for || 0).toFixed(1);
+        document.getElementById('header-record').textContent = w + 'W - ' + l + 'L';
+        document.getElementById('header-pts').textContent = 'PTS: ' + pts;
+        document.getElementById('header-rank').textContent = 'RANK: #' + rk + ' OF 10';
+        document.getElementById('stat-rank').textContent = '#' + rk;
+        document.getElementById('stat-pts').textContent = pts;
+        document.getElementById('stat-winpct').textContent = wp;
+        document.getElementById('stat-wl').textContent = w + 'W / ' + l + 'L';
+      }
+    });
+
     af('weekly_state', '&crawler_id=' + id).then(function(wks) {
       var last = wks[wks.length - 1];
       document.getElementById('pit-status-block').innerHTML = (last && last.pit_status)
@@ -40,9 +60,10 @@ function loadSupa() {
             var on = m ? (i1 ? m.crawler_2.display_name : m.crawler_1.display_name) : '-';
             var os = m ? (i1 ? m.score_2 : m.score_1) : null;
             var sc = parseFloat(w.points_for || 0).toFixed(1);
+            var adj = w.adjusted_points_for != null ? parseFloat(w.adjusted_points_for).toFixed(1) : '-';
             var res = m && m.winner_id ? (i1 ? (m.winner_id === m.crawler_1_id ? 'W' : 'L') : (m.winner_id === m.crawler_2_id ? 'W' : 'L')) : '-';
             var rc = res === 'W' ? 'score-win' : res === 'L' ? 'score-loss' : '';
-            return '<tr><td>WK ' + w.week + '</td><td>' + on + '</td><td>' + sc + '</td><td class="score-adj">-</td><td>' + (os !== null ? parseFloat(os).toFixed(1) : '-') + '</td><td class="' + rc + '">' + res + '</td></tr>';
+            return '<tr><td>WK ' + w.week + '</td><td>' + on + '</td><td>' + sc + '</td><td class="score-adj">' + adj + '</td><td>' + (os !== null ? parseFloat(os).toFixed(1) : '-') + '</td><td class="' + rc + '">' + res + '</td></tr>';
           }).join('');
         }
       });
@@ -87,28 +108,8 @@ function loadSupa() {
 }
 
 function loadYahoo() {
-  Promise.all([
-    fetch(API + '/yahoo-stats?type=standings').then(function(r) { return r.json(); }),
-    fetch(API + '/yahoo-stats?type=matchups').then(function(r) { return r.json(); })
-  ]).then(function(res) {
-    var ts = res[0].data || [];
-    var ms = res[1].data || [];
-    var my = ts.find(function(t) { return (MM[t.manager] || t.manager) === CN; });
-    if (my) {
-      var rk = ts.indexOf(my) + 1;
-      var w = parseInt(my.wins);
-      var l = parseInt(my.losses);
-      var tot = w + l;
-      var wp = tot > 0 ? (w / tot * 100).toFixed(1) + '%' : '-';
-      var pts = parseFloat(my.points_for).toFixed(1);
-      document.getElementById('header-record').textContent = w + 'W - ' + l + 'L';
-      document.getElementById('header-pts').textContent = 'PTS: ' + pts;
-      document.getElementById('header-rank').textContent = 'RANK: #' + rk + ' OF 10';
-      document.getElementById('stat-rank').textContent = '#' + rk;
-      document.getElementById('stat-pts').textContent = pts;
-      document.getElementById('stat-winpct').textContent = wp;
-      document.getElementById('stat-wl').textContent = w + 'W / ' + l + 'L';
-    }
+  fetch(API + '/yahoo-stats?type=matchups').then(function(r) { return r.json(); }).then(function(res) {
+    var ms = res.data || [];
     var mm = ms.find(function(m) {
       return (MM[m.team_a.name] || m.team_a.name) === CN || (MM[m.team_b.name] || m.team_b.name) === CN;
     });
