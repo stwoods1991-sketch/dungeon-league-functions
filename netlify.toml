@@ -27,3 +27,8 @@
   from = "/api/fetch-sheet"
   to = "/.netlify/functions/fetch-sheet"
   status = 200
+  
+[[redirects]]
+  from = "/api/fetch-supabase"
+  to = "/.netlify/functions/fetch-supabase"
+  status = 200
