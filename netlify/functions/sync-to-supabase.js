@@ -4,7 +4,7 @@ const LEAGUE_ID = process.env.YAHOO_LEAGUE_ID || "10371";
 const GAME_KEY  = "nhl";
 const BASE_URL  = "https://fantasysports.yahooapis.com/fantasy/v2";
 
-const SUPABASE_URL              = process.env.SUPABASE_DATABASE_URL;
+const SUPABASE_URL              = process.env.SUPABASE_URL || process.env.SUPABASE_DATABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Manager name map: Yahoo nickname -> crawler display name
