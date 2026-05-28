@@ -15,31 +15,31 @@ function tierClass(t) {
   return 'common';
 }
 
+function loadStandings() {
+  af('standings').then(function(standings) {
+    var me = standings.find(function(s) { return s.display_name === CN; });
+    if (!me) return;
+    var rk = standings.indexOf(me) + 1;
+    var w = me.wins || 0;
+    var l = me.losses || 0;
+    var tot = w + l;
+    var wp = tot > 0 ? (w / tot * 100).toFixed(1) + '%' : '-';
+    var pts = parseFloat(me.points_for || 0).toFixed(1);
+    document.getElementById('header-record').textContent = w + 'W - ' + l + 'L';
+    document.getElementById('header-pts').textContent = 'PTS: ' + pts;
+    document.getElementById('header-rank').textContent = 'RANK: #' + rk + ' OF 10';
+    document.getElementById('stat-rank').textContent = '#' + rk;
+    document.getElementById('stat-pts').textContent = pts;
+    document.getElementById('stat-winpct').textContent = wp;
+    document.getElementById('stat-wl').textContent = w + 'W / ' + l + 'L';
+  }).catch(function(e) { console.error('Standings err:', e); });
+}
+
 function loadSupa() {
   af('crawlers').then(function(cs) {
     var c = cs.find(function(x) { return x.display_name === CN; });
     if (!c) return;
     var id = c.id;
-
-    // Pull standings from Supabase for accurate adjusted rank/record/points
-    af('standings').then(function(standings) {
-      var me = standings.find(function(s) { return s.display_name === CN; });
-      if (me) {
-        var rk = standings.indexOf(me) + 1;
-        var w = me.wins || 0;
-        var l = me.losses || 0;
-        var tot = w + l;
-        var wp = tot > 0 ? (w / tot * 100).toFixed(1) + '%' : '-';
-        var pts = parseFloat(me.points_for || 0).toFixed(1);
-        document.getElementById('header-record').textContent = w + 'W - ' + l + 'L';
-        document.getElementById('header-pts').textContent = 'PTS: ' + pts;
-        document.getElementById('header-rank').textContent = 'RANK: #' + rk + ' OF 10';
-        document.getElementById('stat-rank').textContent = '#' + rk;
-        document.getElementById('stat-pts').textContent = pts;
-        document.getElementById('stat-winpct').textContent = wp;
-        document.getElementById('stat-wl').textContent = w + 'W / ' + l + 'L';
-      }
-    });
 
     af('weekly_state', '&crawler_id=' + id).then(function(wks) {
       var last = wks[wks.length - 1];
@@ -136,6 +136,7 @@ function loadYahoo() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+  loadStandings();
   loadSupa();
   loadYahoo();
 });
