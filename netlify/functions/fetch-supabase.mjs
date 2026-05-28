@@ -1,9 +1,16 @@
 export default async (req) => {
-  const SUPABASE_URL      = Netlify.env.get('SUPABASE_DATABASE_URL');
+  const SUPABASE_URL      = Netlify.env.get('SUPABASE_URL') || Netlify.env.get('SUPABASE_DATABASE_URL');
   const SUPABASE_ANON_KEY = Netlify.env.get('SUPABASE_ANON_KEY');
 
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    return new Response(JSON.stringify({ error: 'Supabase not configured' }), {
+    return new Response(JSON.stringify({ error: 'Supabase not configured. Set SUPABASE_URL (your project REST URL, e.g. https://xxx.supabase.co) and SUPABASE_ANON_KEY in Netlify environment variables.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
+  }
+
+  if (!SUPABASE_URL.startsWith('https://')) {
+    return new Response(JSON.stringify({ error: 'SUPABASE_URL must be your Supabase project URL (e.g. https://xxx.supabase.co), not a postgres:// connection string.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
@@ -29,7 +36,10 @@ export default async (req) => {
         'Content-Type':  'application/json',
       }
     });
-    if (!res.ok) throw new Error(`Supabase error on ${table}: ${res.status}`);
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Supabase error on ${table}: ${res.status} – ${body}`);
+    }
     return res.json();
   }
 
