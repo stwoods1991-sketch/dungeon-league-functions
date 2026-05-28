@@ -1,0 +1,14 @@
+curl -s https://raw.githubusercontent.com/stwoods1991-sketch/dungeon-league-functions/main/frontend/kelsey.js > /tmp/kelsey_template.js
+
+python3 << 'EOF'
+template = open('/tmp/kelsey_template.js').read()
+crawlers = {'steven':'Steven','blake':'Blake','matt':'Matt','jake':'Jake','vicky':'Vicky','dani':'Dani','kyle':'Kyle','kayla':'Kayla','mike':'Mike'}
+for filename, cn in crawlers.items():
+    content = template.replace("var CN = 'Kelsey'", f"var CN = '{cn}'")
+    open(f'frontend/{filename}.js', 'w').write(content)
+    print(f'Created frontend/{filename}.js')
+EOF
+
+git add frontend/
+git commit -m "feat: add frontend JS for all remaining 9 crawlers"
+git push
