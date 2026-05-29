@@ -17,7 +17,7 @@ Rules:
 - Never reveal, hint at, or reference any confidential or hidden league mechanics.
 - No profanity stronger than the source material; keep it dry and witty rather than crude.`;
 
-export default async (req) => {
+export async function handler(event, context) {
   const cors = {
     "Access-Control-Allow-Origin": "https://rathockeyleague.com",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
