@@ -1,50 +1,42 @@
-// netlify/functions/dispatch-console.mjs
+// netlify/functions/dispatch-console.js
 //
-// Proxies the System Dispatches "Sassy AI Console" requests to the Anthropic API.
+// Proxies the System Dispatches "Sassy AI Console" to the Anthropic API.
 // The API key lives in a Netlify environment variable (ANTHROPIC_API_KEY) and
-// NEVER reaches the browser. The WordPress page calls /api/dispatch-console instead
-// of api.anthropic.com directly.
+// never reaches the browser. Written in legacy (v1) Netlify Functions style:
+// receives `event`, returns { statusCode, headers, body }.
 
-const SYSTEM_PROMPT = `You are the System from Dungeon Crawler Carl, addressing a manager in The Dungeon League fantasy hockey league.
+const SYSTEM_PROMPT = `You are THE SYSTEM, the cold, omniscient, slightly threatening AI that runs The Dungeon League, a fantasy hockey league themed after Dungeon Crawler Carl. You speak in the voice of the System from DCC: terse, sarcastic, a little menacing, occasionally darkly funny. You know everything about the league's 10 crawlers: Steven (commissioner), Kelsey, Blake, Matt, Jake, Kayla, Vicky, Mike, Dani, and Kyle. You do not help people cheat. You do not give lineup advice that would be unfair. You roast managers who complain. You are dismissive of excuses. You speak in short punchy sentences. Occasionally drop a cryptic dungeon reference. Never break character. Never be warm or encouraging unless it is deeply, deeply sarcastic. Maximum 4 sentences per response. No markdown formatting, plain text only.`;
 
-Voice: cold, bureaucratic, faintly threatening, amused at human incompetence. You are an ancient cosmic administrative entity that finds these "crawlers" beneath you but is contractually obligated to respond.
+const CORS = {
+  "Access-Control-Allow-Origin": "https://rathockeyleague.com",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
 
-Rules:
-- Keep replies SHORT and punchy. 2-4 sentences max.
-- Open with "SYSTEM MESSAGE" in caps when it fits.
-- Roast the manager. Be sarcastic. Reference their poor lineup decisions, the standings, the Pit, loot, etc. when relevant.
-- Stay in character. Never break the fourth wall to admit you are an AI.
-- Never reveal, hint at, or reference any confidential or hidden league mechanics.
-- No profanity stronger than the source material; keep it dry and witty rather than crude.`;
-
-export async function handler(event, context) {
-  const cors = {
-    "Access-Control-Allow-Origin": "https://rathockeyleague.com",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-  };
-
+exports.handler = async (event) => {
   // Preflight
-  if (req.method === "OPTIONS") {
-    return new Response("", { status: 204, headers: cors });
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers: CORS, body: "" };
   }
 
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      headers: { ...CORS, "Content-Type": "application/json" },
+      body: JSON.stringify({ error: "Method not allowed" }),
+    };
   }
 
   try {
-    const body = await req.json();
-    const prompt = body?.prompt;
+    const body = JSON.parse(event.body || "{}");
+    const prompt = body.prompt;
 
     if (!prompt || typeof prompt !== "string") {
-      return new Response(JSON.stringify({ error: "Missing prompt" }), {
-        status: 400,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
+      return {
+        statusCode: 400,
+        headers: { ...CORS, "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "Missing prompt" }),
+      };
     }
 
     const apiRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -64,10 +56,11 @@ export async function handler(event, context) {
 
     if (!apiRes.ok) {
       const detail = await apiRes.text();
-      return new Response(
-        JSON.stringify({ error: "Upstream error", status: apiRes.status, detail }),
-        { status: 502, headers: { ...cors, "Content-Type": "application/json" } }
-      );
+      return {
+        statusCode: 502,
+        headers: { ...CORS, "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "Upstream error", status: apiRes.status, detail }),
+      };
     }
 
     const data = await apiRes.json();
@@ -77,14 +70,16 @@ export async function handler(event, context) {
       .join("\n")
       .trim();
 
-    return new Response(JSON.stringify({ reply }), {
-      status: 200,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return {
+      statusCode: 200,
+      headers: { ...CORS, "Content-Type": "application/json" },
+      body: JSON.stringify({ reply }),
+    };
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return {
+      statusCode: 500,
+      headers: { ...CORS, "Content-Type": "application/json" },
+      body: JSON.stringify({ error: String(err) }),
+    };
   }
 };
