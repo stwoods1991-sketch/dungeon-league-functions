@@ -8,7 +8,8 @@
 //   PUZZLE_ANSWER = THE FLOOR IS YOURS     (spaces/case don't matter)
 //   PUZZLE_CODE   = FLOOR-BOSS-SLAIN       (optional; the champion code returned on success)
 
-const ORIGIN = "https://rathockeyleague.com";
+// "*" matches the pattern used by the other functions (e.g. fetch-sheet).
+const ORIGIN = "*";
 
 const CORS = {
   "Access-Control-Allow-Origin": ORIGIN,
