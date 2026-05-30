@@ -5,7 +5,7 @@
 // environment variable, so inspecting the terminal page reveals nothing.
 //
 // Set these in Netlify > Site settings > Environment variables:
-//   PUZZLE_ANSWER = THE FLOOR IS YOURS     (spaces/case don't matter)
+//   PUZZLE_ANSWER = GOALTENDER     (spaces/case don't matter)
 //   PUZZLE_CODE   = FLOOR-BOSS-SLAIN       (optional; the champion code returned on success)
 
 // "*" matches the pattern used by the other functions (e.g. fetch-sheet).
