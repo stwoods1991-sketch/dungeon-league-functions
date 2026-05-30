@@ -27,8 +27,13 @@
   from = "/api/fetch-sheet"
   to = "/.netlify/functions/fetch-sheet"
   status = 200
-  
+
 [[redirects]]
   from = "/api/fetch-supabase"
   to = "/.netlify/functions/fetch-supabase"
+  status = 200
+
+[[redirects]]
+  from = "/api/puzzle-check"
+  to = "/.netlify/functions/puzzle-check"
   status = 200
