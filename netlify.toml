@@ -37,3 +37,8 @@
   from = "/api/puzzle-check"
   to = "/.netlify/functions/puzzle-check"
   status = 200
+
+  [[redirects]]
+    from = "/api/save-profile"
+    to = "/.netlify/functions/save-profile"
+    status = 200
