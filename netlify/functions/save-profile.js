@@ -18,7 +18,7 @@ const EDIT_TOKEN = process.env.PROFILE_EDIT_TOKEN || ""; // optional write guard
 const TABLE = "crawlers";
 // Public columns ONLY. The passive_name / passive_description / passive_trigger
 // columns are deliberately excluded and never read or written here.
-const PUBLIC_COLS = "id,display_name,race,class";
+const PUBLIC_COLS = "id,display_name,race,class,crest_url";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
