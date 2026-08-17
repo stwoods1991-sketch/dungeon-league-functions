@@ -1,7 +1,7 @@
 const { getStore } = require("@netlify/blobs");
 
-const LEAGUE_ID = process.env.YAHOO_LEAGUE_ID || "10371";
-const GAME_KEY = "nhl";
+const LEAGUE_ID = process.env.YAHOO_LEAGUE_ID;
+const GAME_KEY = process.env.YAHOO_GAME_KEY || "nhl";
 const BASE_URL = "https://fantasysports.yahooapis.com/fantasy/v2";
 
 function getTokenStore() {
@@ -225,6 +225,18 @@ exports.handler = async (event) => {
     let responseData;
 
     switch (type) {
+      // TEMP DIAGNOSTIC — returns every NHL league this account belongs to,
+      // with its full game-qualified key (e.g. "465.l.11456"). Use the game
+      // key prefix it reports to set YAHOO_GAME_KEY in Netlify.
+      case "leagues": {
+        const data = await yahooFetch(
+          "/users;use_login=1/games;game_codes=nhl/leagues",
+          accessToken
+        );
+        responseData = { type: "leagues", data };
+        break;
+      }
+
       case "standings": {
         const data = await yahooFetch(`/league/${leagueKey}/standings`, accessToken);
         responseData = { type: "standings", data: parseStandings(data) };
