@@ -8,7 +8,7 @@ exports.handler = async () => {
     };
   }
 
-  const params = new URLSearchParams({
+   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: "https://dungeon-league-functions.netlify.app/api/yahoo-callback",
     response_type: "code",
