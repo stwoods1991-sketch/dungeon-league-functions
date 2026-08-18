@@ -116,11 +116,12 @@ export default async (req) => {
         break;
       }
 
-      // Weekly state for a specific crawler
+      // Weekly state — one crawler if crawler_id given, otherwise league-wide
       case 'weekly_state': {
         const crawlerId = url.searchParams.get('crawler_id');
-        if (!crawlerId) throw new Error('crawler_id required for weekly_state');
-        data = await sbFetch('weekly_state', `?crawler_id=eq.${crawlerId}&order=week.asc`);
+        data = crawlerId
+          ? await sbFetch('weekly_state', `?crawler_id=eq.${crawlerId}&order=week.asc`)
+          : await sbFetch('weekly_state', '?select=*&order=week.asc');
         break;
       }
 
