@@ -179,3 +179,30 @@ details.comp-entry[open]>summary .comp-entry-toggle::after{content:'\2212'}
   details.comp-entry>summary{gap:.8rem}
   .comp-entry-name{font-size:1.15rem}
 }
+
+/* ============================================================
+   SYSTEM TERMINAL - the interactive console
+   Violet-on-black: this is The System speaking, not the league.
+   ============================================================ */
+.console-wrap{border:1px solid var(--sys-border);background:var(--sys-bg);margin:1.4rem 0 3rem;overflow:hidden}
+.console-header{background:#020208;border-bottom:1px solid var(--sys-border);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.console-header-title{font-family:var(--mono);font-size:.66rem;letter-spacing:var(--track-widest);text-transform:uppercase;color:var(--sys-label)}
+.console-status{font-family:var(--mono);font-size:.66rem;letter-spacing:var(--track-wide);color:var(--signal-ok);white-space:nowrap}
+.console-status.thinking{color:var(--signal-warn);animation:console-blink .8s step-end infinite}
+.console-status.error{color:var(--signal-alert)}
+@keyframes console-blink{50%{opacity:0}}
+.console-output{padding:1.4rem 1.25rem;min-height:200px;max-height:420px;overflow-y:auto}
+.console-line{font-family:var(--mono);font-size:.78rem;line-height:1.9;margin-bottom:.25rem;white-space:pre-wrap;word-break:break-word}
+.console-line.prompt-line{color:var(--sys-label)}
+.console-line.response-line{color:#c8d8ff;padding-left:1.1rem;border-left:2px solid var(--sys-border);margin:.3rem 0 .6rem}
+.console-line.system-line{color:var(--signal-ok)}
+.console-line.error-line{color:var(--signal-alert)}
+.console-line.divider-line{color:var(--sys-border);margin:.5rem 0;overflow:hidden}
+.console-input-row{border-top:1px solid var(--sys-border);padding:.75rem 1.25rem;display:flex;align-items:center;gap:.75rem}
+.console-prompt-char{font-family:var(--mono);font-size:.85rem;color:var(--sys-label);flex-shrink:0}
+.console-input{flex:1;min-width:0;background:transparent;border:none;outline:none;font-family:var(--mono);font-size:.8rem;color:var(--text-bright);letter-spacing:.05em;caret-color:var(--sys-label)}
+.console-input::placeholder{color:#303060}
+.console-submit{font-family:var(--mono);font-size:.66rem;letter-spacing:var(--track-wide);color:var(--sys-label);padding:.4rem .9rem;border:1px solid var(--sys-border);background:transparent;cursor:pointer;transition:all .2s;flex-shrink:0}
+.console-submit:hover:not(:disabled){border-color:var(--sys-label);color:var(--gold-light)}
+.console-submit:disabled{opacity:.3;cursor:not-allowed}
+.console-disclaimer{font-family:var(--mono);font-size:.6rem;color:#303060;letter-spacing:.1em;text-align:center;padding:.6rem 1.25rem;border-top:1px solid #0a0a18}
