@@ -183,13 +183,13 @@ function loadFlavor() {
     document.getElementById('vault-total-achievements').textContent = achievements.length;
 
     // Celestial boons
-    af('inventory').then(function(items) {
-      var boons = items.filter(function(i) { return i.item_tier === 'CELESTIAL'; });
-      var active = boons.filter(function(i) { return i.is_active; });
-      document.getElementById('vault-boons').textContent = active.length + ' / ' + boons.length;
-      document.getElementById('vault-boons-detail').textContent = active.length
-        ? active.map(function(b) { return b.crawlers ? b.crawlers.display_name : '?'; }).join(', ') + ' — Unused'
-        : 'All boons have been used.';
+    af('celestial_boons').then(function(rows) {
+      var held   = rows.filter(function(b) { return b.has_boon; });
+      var unused = held.filter(function(b) { return !b.used; });
+      document.getElementById('vault-boons').textContent = unused.length + ' / ' + held.length;
+      document.getElementById('vault-boons-detail').textContent = unused.length
+        ? unused.map(function(b) { return b.crawlers ? b.crawlers.display_name : '?'; }).join(', ') + ' — Unused'
+        : (held.length ? 'All boons have been used.' : 'No boons in play yet.');
     }).catch(function() {});
 
   }).catch(function(e) { console.error('Vault flavor err:', e); });
