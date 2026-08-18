@@ -31,8 +31,8 @@
 .dl-lore{max-width:62ch;padding:2.4rem 0 1rem}
 .dl-lore p{font-size:var(--read);line-height:1.78;margin:0 0 1.15em;color:var(--text-body)}
 .dl-lore p:first-of-type::first-letter{font-family:var(--display);font-weight:700;color:var(--gold);font-size:3.2rem;line-height:.8;float:left;margin:.15em .12em 0 0}
-.dl-rune{position:absolute;top:2.8rem;right:0;font-family:var(--mono);font-size:.8rem;color:var(--stone-border);cursor:default;user-select:all;transition:color .25s,text-shadow .25s}
-.dl-rune:hover{color:var(--gold)!important;text-shadow:0 0 10px rgba(196,154,42,.5)}
+.dl-rune{position:absolute;top:2.8rem;right:0;font-family:var(--mono);font-size:11px;letter-spacing:.15em;color:var(--gold-dim);opacity:.55;border:1px solid var(--stone-border);padding:1px 7px;border-radius:2px;cursor:default;user-select:all;transition:color .25s,opacity .25s,text-shadow .25s,border-color .25s}
+.dl-rune:hover{color:var(--gold);opacity:1;border-color:var(--gold-deep);text-shadow:0 0 10px rgba(196,154,42,.5)}
 .dungeon-log{margin-top:var(--gap-md)}
 .log-entry{padding:1.9rem 0;border-top:1px solid var(--stone-border)}
 .log-entry:first-child{border-top:none}
@@ -206,3 +206,48 @@ details.comp-entry[open]>summary .comp-entry-toggle::after{content:'\2212'}
 .console-submit:hover:not(:disabled){border-color:var(--sys-label);color:var(--gold-light)}
 .console-submit:disabled{opacity:.3;cursor:not-allowed}
 .console-disclaimer{font-family:var(--mono);font-size:.6rem;color:#303060;letter-spacing:.1em;text-align:center;padding:.6rem 1.25rem;border-top:1px solid #0a0a18}
+
+/* ============================================================
+   STORY MARKUP - classes for use inside post content
+   The System interrupts the narrative in two ways: a boxed
+   readout, and a spoken aside. Both are violet, both are mono,
+   because both are the dungeon talking rather than the teller.
+   ============================================================ */
+.log-entry-body .sys-note{
+  background:var(--sys-bg);
+  border:1px solid var(--sys-border);
+  border-left:3px solid var(--sys-label);
+  padding:1rem 1.15rem;
+  margin:1.7em 0;
+  font-family:var(--mono);
+  font-size:.76rem;
+  line-height:2.05;
+  letter-spacing:.04em;
+  color:var(--sys-text);
+  white-space:pre-line;
+}
+.log-entry-body .sys-note strong{
+  display:block;
+  color:var(--sys-label);
+  font-weight:400;
+  font-size:.7rem;
+  letter-spacing:var(--track-wide);
+  text-transform:uppercase;
+  margin-bottom:.55rem;
+}
+.log-entry-body .sys-note .ok{color:var(--signal-ok)}
+.log-entry-body .sys-note .warn{color:var(--signal-warn)}
+.log-entry-body .sys-note .err{color:var(--signal-alert)}
+
+.log-entry-body p.sys-said{
+  font-family:var(--mono);
+  font-size:.82rem;
+  line-height:1.85;
+  letter-spacing:.03em;
+  color:var(--sys-text);
+  border-left:2px solid var(--sys-border);
+  padding-left:1rem;
+  margin:1.4em 0;
+}
+.log-entry-body p.beat{margin-bottom:.5em}
+.log-entry-body p.said{color:var(--text-bright);font-style:italic}
