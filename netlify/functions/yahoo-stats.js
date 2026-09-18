@@ -157,28 +157,33 @@ function parseStandings(data) {
 
 function parseMatchups(data) {
   try {
-    const matchups = data.fantasy_content.league[1].scoreboard.matchups;
+    // Yahoo nests the list under scoreboard["0"].matchups; fall back to the flat shape just in case
+    const sb = data.fantasy_content.league[1].scoreboard;
+    const matchups = sb["0"]?.matchups || sb.matchups;
     const result = [];
+
+    const side = (team) => {
+      const info = team[0];
+      return {
+        team_key:  info.find((x) => x.team_key)?.team_key || "",
+        team_id:   info.find((x) => x.team_id)?.team_id || null,
+        name:      info.find((x) => x.name)?.name || "—",
+        manager:   (info.find((x) => x.managers)?.managers?.[0]?.manager?.nickname || "").trim(),
+        points:    team[1]?.team_points?.total || 0,
+        projected: team[1]?.team_projected_points?.total || 0,
+      };
+    };
 
     for (let i = 0; i < matchups.count; i++) {
       const m = matchups[i].matchup;
-      const week = m.week;
       const teams = m["0"].teams;
-      const teamA = teams["0"].team;
-      const teamB = teams["1"].team;
-
       result.push({
-        week,
-        team_a: {
-          name: teamA[0].find((x) => x.name)?.name || "—",
-          points: teamA[1]?.team_points?.total || 0,
-          projected: teamA[1]?.team_projected_points?.total || 0,
-        },
-        team_b: {
-          name: teamB[0].find((x) => x.name)?.name || "—",
-          points: teamB[1]?.team_points?.total || 0,
-          projected: teamB[1]?.team_projected_points?.total || 0,
-        },
+        week:            m.week,
+        status:          m.status || "",            // preevent | midevent | postevent
+        is_tied:         String(m.is_tied) === "1",
+        winner_team_key: m.winner_team_key || "",
+        team_a: side(teams["0"].team),
+        team_b: side(teams["1"].team),
       });
     }
 
