@@ -42,3 +42,23 @@
     from = "/api/save-profile"
     to = "/.netlify/functions/save-profile"
     status = 200
+
+[[redirects]]
+  from = "/api/sync-to-supabase"
+  to = "/.netlify/functions/sync-to-supabase"
+  status = 200
+
+[[redirects]]
+  from = "/api/commish"
+  to = "/.netlify/functions/commish"
+  status = 200
+
+[[redirects]]
+  from = "/api/dispatch-console"
+  to = "/.netlify/functions/dispatch-console"
+  status = 200
+
+# Pull Yahoo scores into Supabase every 15 minutes so the Crawler Companion
+# (which reads Supabase directly) stays current through the week.
+[functions."sync-cron"]
+  schedule = "*/15 * * * *"
