@@ -68,6 +68,7 @@ async function route(action, d) {
   switch (action) {
     case "ping":             return { pong: true };
     case "saveWeek":         return saveWeek(d);
+    case "unlockWeek":       return unlockWeek(d);
     case "postDispatch":     return postDispatch(d);
     case "grantAchievement": return grantAchievement(d);
     case "grantLoot":        return grantLoot(d);
@@ -97,7 +98,9 @@ async function saveWeek(d) {
       crawler_2_id: int(m.crawler_2_id),
       score_1: num(m.score_1),
       score_2: num(m.score_2),
-      winner_id: m.winner_id ? int(m.winner_id) : null
+      winner_id: m.winner_id ? int(m.winner_id) : null,
+      status: "postevent",   // a console save is the final, adjusted result
+      manual: true           // tells sync-to-supabase to leave this week alone
     }));
   if (mIns.length) await sbDo(`matchups`, { method: "POST", body: mIns, prefer: "return=minimal" });
 
@@ -115,6 +118,14 @@ async function saveWeek(d) {
     });
 
   return { week, matchups: mIns.length, crawlers: ws.length };
+}
+
+/* Remove the console's manual rows for a week so the Yahoo cron refills it (within ~15 min) */
+async function unlockWeek(d) {
+  const week = int(d.week);
+  if (!week) throw new Error("week required");
+  await sbDo(`matchups?week=eq.${week}&manual=eq.true`, { method: "DELETE" });
+  return { week, unlocked: true };
 }
 
 /* ---------- DISPATCH ---------- */

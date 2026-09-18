@@ -177,6 +177,12 @@ exports.handler = async (event) => {
       weeklyRows.push({ week, crawler_id: c2, points_for: m.b.points, wins: winnerId === c2 ? 1 : 0, losses: winnerId === c1 ? 1 : 0 });
     }
 
+    // If the commissioner has saved this week from the console (manual=true), it's final — don't overwrite adjusted scores.
+    const locked = await sb(`matchups?week=eq.${week}&manual=eq.true&select=id&limit=1`);
+    if (locked.length) {
+      return { statusCode: 200, headers, body: JSON.stringify({ success: true, week, skipped: true, note: `Week ${week} is locked by the commissioner console — Yahoo sync left it untouched. Use "Unlock week" in the console to resume syncing.` }) };
+    }
+
     // matchups has no unique key on (week, c1, c2), so replace the week's rows (same pattern as commish.js saveWeek)
     await sb(`matchups?week=eq.${week}`, { method: "DELETE" });
     if (matchupRows.length) await sb("matchups", { method: "POST", body: matchupRows, prefer: "return=minimal" });
