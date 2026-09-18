@@ -17,7 +17,7 @@ const MANAGER_NAME_MAP = {
   "Kayla":   "Kayla",
   "Vicky":   "Vicky",
   "DotsonX": "Mike",
-  "Dan":     "Dani",
+  "Danica Miller":     "Dani",
   "Kyle":    "Kyle",
 };
 
