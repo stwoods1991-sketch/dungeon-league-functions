@@ -1,6 +1,6 @@
 var API = 'https://dungeon-league-functions.netlify.app/api';
 var CN = 'Mike';
-var MM = {"Steven":"Steven","Kelsey":"Kelsey","Blake":"Blake","Matt":"Matt","J":"Jake","Kayla":"Kayla","Vicky":"Vicky","DotsonX":"Mike","Dan":"Dani","Kyle":"Kyle"};
+var MM = {"Steven":"Steven","Kelsey":"Kelsey","Blake":"Blake","Matt":"Matt","J":"Jake","Kayla":"Kayla","Vicky":"Vicky","DotsonX":"Mike","Danica Miller":"Dani","Kyle":"Kyle"};
 
 function af(r, e) {
   return fetch(API + '/fetch-supabase?resource=' + r + (e || '')).then(function(x) { return x.json(); });
@@ -108,26 +108,37 @@ function loadSupa() {
 }
 
 function loadYahoo() {
-  fetch(API + '/yahoo-stats?type=matchups').then(function(r) { return r.json(); }).then(function(res) {
-    var ms = res.data || [];
-    var mm = ms.find(function(m) {
-      return (MM[m.team_a.name] || m.team_a.name) === CN || (MM[m.team_b.name] || m.team_b.name) === CN;
+  // Build nickname -> crawler map from Supabase (crawlers.yahoo_name) so renames don't require a redeploy
+  af('crawlers').then(function(cs) {
+    cs.forEach(function(c) {
+      if (c.yahoo_name) MM[c.yahoo_name.trim()] = c.display_name;
+      MM[c.display_name] = c.display_name;
     });
+    return fetch(API + '/yahoo-stats?type=matchups').then(function(r) { return r.json(); });
+  }).then(function(res) {
+    var ms = res.data || [];
+    function who(t) { return MM[t.manager] || MM[t.name] || t.manager || t.name; }
+    var mm = ms.find(function(m) { return who(m.team_a) === CN || who(m.team_b) === CN; });
     if (mm) {
-      var an = MM[mm.team_a.name] || mm.team_a.name;
-      var ia = an === CN;
-      var mp = parseFloat(ia ? mm.team_a.points : mm.team_b.points);
-      var op = parseFloat(ia ? mm.team_b.points : mm.team_a.points);
-      var on = ia ? (MM[mm.team_b.name] || mm.team_b.name) : an;
-      var mpj = parseFloat(ia ? mm.team_a.projected : mm.team_b.projected).toFixed(1);
-      var opj = parseFloat(ia ? mm.team_b.projected : mm.team_a.projected).toFixed(1);
-      var iw = mp >= op;
+      var ia = who(mm.team_a) === CN;
+      var me = ia ? mm.team_a : mm.team_b;
+      var op = ia ? mm.team_b : mm.team_a;
+      var mp = parseFloat(me.points) || 0;
+      var opp = parseFloat(op.points) || 0;
+      var mpj = (parseFloat(me.projected) || 0).toFixed(1);
+      var opj = (parseFloat(op.projected) || 0).toFixed(1);
+      var iw = mp >= opp;
+      var done = mm.status === 'postevent';
+      var pre = mm.status === 'preevent';
+      var note = done ? (mm.is_tied ? 'FINAL - TIED' : (iw ? 'FINAL - VICTORY' : 'FINAL - DEFEAT'))
+               : pre ? 'MATCHUP SET - AWAITING FIRST PUCK DROP'
+               : (iw ? 'CURRENTLY WINNING' : 'CURRENTLY LOSING') + ' - SCORES UPDATE FROM YAHOO';
       document.getElementById('matchup-week').textContent = 'WEEK ' + mm.week;
       document.getElementById('matchup-body').innerHTML =
         '<div class="matchup-side"><div class="matchup-crawler ' + (iw ? 'winning' : 'losing') + '">' + CN + '</div><div class="matchup-pts ' + (iw ? 'winning' : 'losing') + '">' + mp.toFixed(1) + '</div><div class="matchup-proj">PROJ: ' + mpj + '</div></div>' +
         '<div class="matchup-center"><span class="matchup-vs-text">VS</span><div class="matchup-status-dot"></div></div>' +
-        '<div class="matchup-side right"><div class="matchup-crawler ' + (!iw ? 'winning' : 'losing') + '">' + on + '</div><div class="matchup-pts ' + (!iw ? 'winning' : 'losing') + '">' + op.toFixed(1) + '</div><div class="matchup-proj">PROJ: ' + opj + '</div></div>';
-      document.getElementById('matchup-note').textContent = '[ ' + (iw ? 'CURRENTLY WINNING' : 'CURRENTLY LOSING') + ' - SCORES UPDATE FROM YAHOO ]';
+        '<div class="matchup-side right"><div class="matchup-crawler ' + (!iw ? 'winning' : 'losing') + '">' + who(op) + '</div><div class="matchup-pts ' + (!iw ? 'winning' : 'losing') + '">' + opp.toFixed(1) + '</div><div class="matchup-proj">PROJ: ' + opj + '</div></div>';
+      document.getElementById('matchup-note').textContent = '[ ' + note + ' ]';
     } else {
       document.getElementById('matchup-body').innerHTML = '<div style="grid-column:1/-1;text-align:center;font-family:var(--mono);font-size:11px;color:var(--text-dim);padding:1rem;">[ NO ACTIVE MATCHUP - BETWEEN WEEKS ]</div>';
       document.getElementById('matchup-note').textContent = '';

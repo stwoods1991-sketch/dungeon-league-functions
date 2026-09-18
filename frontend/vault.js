@@ -1,5 +1,5 @@
 var API = 'https://dungeon-league-functions.netlify.app/api';
-var MM = {"Steven":"Steven","Kelsey":"Kelsey","Blake":"Blake","Matt":"Matt","J":"Jake","Kayla":"Kayla","Vicky":"Vicky","DotsonX":"Mike","Dan":"Dani","Kyle":"Kyle"};
+var MM = {"Steven":"Steven","Kelsey":"Kelsey","Blake":"Blake","Matt":"Matt","J":"Jake","Kayla":"Kayla","Vicky":"Vicky","DotsonX":"Mike","Danica Miller":"Dani","Kyle":"Kyle"};
 var FLOORS = [
   {weeks:[1,2],   name:"Floor 1",  title:"The Lobby of False Promises"},
   {weeks:[3,4],   name:"Floor 2",  title:"The Mucus Swamps of Mild Inconvenience"},
